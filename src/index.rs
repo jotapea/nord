@@ -19,28 +19,28 @@ use {
 };
 
 mod entry;
-mod rtx;
+// mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 2;
+// const SCHEMA_VERSION: u64 = 2;
 
-macro_rules! define_table {
-  ($name:ident, $key:ty, $value:ty) => {
-    const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
-  };
-}
+// macro_rules! define_table {
+//   ($name:ident, $key:ty, $value:ty) => {
+//     const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
+//   };
+// }
 
-define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
-define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
-define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
-define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
-define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
-define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
-define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
-define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
-define_table! { STATISTIC_TO_COUNT, u64, u64 }
-define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
+// define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
+// define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
+// define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
+// define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+// define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
+// define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+// define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
+// define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+// define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
+// define_table! { STATISTIC_TO_COUNT, u64, u64 }
+// define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 pub(crate) struct Index {
   auth: Auth,
@@ -214,13 +214,13 @@ impl Index {
       .collect()
   }
 
-  pub(crate) fn has_sat_index(&self) -> Result<bool> {
-    match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
-      Ok(_) => Ok(true),
-      Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
-      Err(err) => Err(err.into()),
-    }
-  }
+  // pub(crate) fn has_sat_index(&self) -> Result<bool> {
+  //   match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
+  //     Ok(_) => Ok(true),
+  //     Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
+  //     Err(err) => Err(err.into()),
+  //   }
+  // }
 
   fn require_sat_index(&self, feature: &str) -> Result {
     if !self.has_sat_index()? {
@@ -303,16 +303,16 @@ impl Index {
   //   }
   // }
 
-  fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
-    let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
-    let value = statistic_to_count
-      .get(&(statistic.key()))?
-      .map(|x| x.value())
-      .unwrap_or(0)
-      + n;
-    statistic_to_count.insert(&statistic.key(), &value)?;
-    Ok(())
-  }
+  // fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
+  //   let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+  //   let value = statistic_to_count
+  //     .get(&(statistic.key()))?
+  //     .map(|x| x.value())
+  //     .unwrap_or(0)
+  //     + n;
+  //   statistic_to_count.insert(&statistic.key(), &value)?;
+  //   Ok(())
+  // }
 
   // #[cfg(test)]
   // pub(crate) fn statistic(&self, statistic: Statistic) -> u64 {
@@ -328,29 +328,29 @@ impl Index {
   //     .unwrap_or(0)
   // }
 
-  pub(crate) fn height(&self) -> Result<Option<Height>> {
-    self.begin_read()?.height()
-  }
+  // pub(crate) fn height(&self) -> Result<Option<Height>> {
+  //   self.begin_read()?.height()
+  // }
 
-  pub(crate) fn block_count(&self) -> Result<u64> {
-    self.begin_read()?.block_count()
-  }
+  // pub(crate) fn block_count(&self) -> Result<u64> {
+  //   self.begin_read()?.block_count()
+  // }
 
-  pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
-    let mut blocks = Vec::new();
+  // pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
+  //   let mut blocks = Vec::new();
 
-    let rtx = self.begin_read()?;
+  //   let rtx = self.begin_read()?;
 
-    let block_count = rtx.block_count()?;
+  //   let block_count = rtx.block_count()?;
 
-    let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
+  //   let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
-    for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-      blocks.push((next.0.value(), Entry::load(*next.1.value())));
-    }
+  //   for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
+  //     blocks.push((next.0.value(), Entry::load(*next.1.value())));
+  //   }
 
-    Ok(blocks)
-  }
+  //   Ok(blocks)
+  // }
 
   // pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
   //   if self.has_sat_index()? {
@@ -521,33 +521,33 @@ impl Index {
     )
   }
 
-  pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
-    self.require_sat_index("find")?;
+  // pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
+  //   self.require_sat_index("find")?;
 
-    let rtx = self.begin_read()?;
+  //   let rtx = self.begin_read()?;
 
-    if rtx.block_count()? <= Sat(sat).height().n() {
-      return Ok(None);
-    }
+  //   if rtx.block_count()? <= Sat(sat).height().n() {
+  //     return Ok(None);
+  //   }
 
-    let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
+  //   let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
-      let mut offset = 0;
-      for chunk in value.value().chunks_exact(11) {
-        let (start, end) = SatRange::load(chunk.try_into().unwrap());
-        if start <= sat && sat < end {
-          return Ok(Some(SatPoint {
-            outpoint: Entry::load(*key.value()),
-            offset: offset + sat - start,
-          }));
-        }
-        offset += end - start;
-      }
-    }
+  //   for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
+  //     let mut offset = 0;
+  //     for chunk in value.value().chunks_exact(11) {
+  //       let (start, end) = SatRange::load(chunk.try_into().unwrap());
+  //       if start <= sat && sat < end {
+  //         return Ok(Some(SatPoint {
+  //           outpoint: Entry::load(*key.value()),
+  //           offset: offset + sat - start,
+  //         }));
+  //       }
+  //       offset += end - start;
+  //     }
+  //   }
 
-    Ok(None)
-  }
+  //   Ok(None)
+  // }
 
   // fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
   //   Ok(
@@ -589,32 +589,31 @@ impl Index {
 
     match self.get_block_by_height(height)? {
       Some(block) => Ok(Blocktime::confirmed(block.header.time)),
-      None => {
-        // TODO
-        let tx = self.database.begin_read()?;
+      // None => {
+      //   let tx = self.database.begin_read()?;
 
-        let current = tx
-          .open_table(HEIGHT_TO_BLOCK_HASH)?
-          .range(0..)?
-          .rev()
-          .next()
-          .map(|(height, _hash)| height)
-          .map(|x| x.value())
-          .unwrap_or(0);
+      //   let current = tx
+      //     .open_table(HEIGHT_TO_BLOCK_HASH)?
+      //     .range(0..)?
+      //     .rev()
+      //     .next()
+      //     .map(|(height, _hash)| height)
+      //     .map(|x| x.value())
+      //     .unwrap_or(0);
 
-        let expected_blocks = height.checked_sub(current).with_context(|| {
-          format!("current {current} height is greater than sat height {height}")
-        })?;
+      //   let expected_blocks = height.checked_sub(current).with_context(|| {
+      //     format!("current {current} height is greater than sat height {height}")
+      //   })?;
 
-        Ok(Blocktime::Expected(
-          Utc::now()
-            .round_subsecs(0)
-            .checked_add_signed(chrono::Duration::seconds(
-              10 * 60 * i64::try_from(expected_blocks)?,
-            ))
-            .ok_or_else(|| anyhow!("block timestamp out of range"))?,
-        ))
-      }
+      //   Ok(Blocktime::Expected(
+      //     Utc::now()
+      //       .round_subsecs(0)
+      //       .checked_add_signed(chrono::Duration::seconds(
+      //         10 * 60 * i64::try_from(expected_blocks)?,
+      //       ))
+      //       .ok_or_else(|| anyhow!("block timestamp out of range"))?,
+      //   ))
+      // }
     }
   }
 
