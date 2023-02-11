@@ -46,12 +46,12 @@ pub(crate) struct Index {
   auth: Auth,
   client: Client,
   // database: Database,
-  path: PathBuf,
-  first_inscription_height: u64,
+  // path: PathBuf,
+  // first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
-  height_limit: Option<u64>,
-  reorged: AtomicBool,
+  // height_limit: Option<u64>,
+  // reorged: AtomicBool,
   rpc_url: String,
 }
 
@@ -230,64 +230,64 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn info(&self) -> Result<Info> {
-    let wtx = self.begin_write()?;
+  // pub(crate) fn info(&self) -> Result<Info> {
+  //   let wtx = self.begin_write()?;
 
-    let stats = wtx.stats()?;
+  //   let stats = wtx.stats()?;
 
-    let info = {
-      let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
-      let sat_ranges = statistic_to_count
-        .get(&Statistic::SatRanges.key())?
-        .map(|x| x.value())
-        .unwrap_or(0);
-      let outputs_traversed = statistic_to_count
-        .get(&Statistic::OutputsTraversed.key())?
-        .map(|x| x.value())
-        .unwrap_or(0);
-      Info {
-        index_path: self.path.clone(),
-        blocks_indexed: wtx
-          .open_table(HEIGHT_TO_BLOCK_HASH)?
-          .range(0..)?
-          .rev()
-          .next()
-          .map(|(height, _hash)| height.value() + 1)
-          .unwrap_or(0),
-        branch_pages: stats.branch_pages(),
-        fragmented_bytes: stats.fragmented_bytes(),
-        index_file_size: fs::metadata(&self.path)?.len(),
-        leaf_pages: stats.leaf_pages(),
-        metadata_bytes: stats.metadata_bytes(),
-        sat_ranges,
-        outputs_traversed,
-        page_size: stats.page_size(),
-        stored_bytes: stats.stored_bytes(),
-        transactions: wtx
-          .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
-          .range(0..)?
-          .map(
-            |(starting_block_count, starting_timestamp)| TransactionInfo {
-              starting_block_count: starting_block_count.value(),
-              starting_timestamp: starting_timestamp.value(),
-            },
-          )
-          .collect(),
-        tree_height: stats.tree_height(),
-        utxos_indexed: wtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
-      }
-    };
+  //   let info = {
+  //     let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+  //     let sat_ranges = statistic_to_count
+  //       .get(&Statistic::SatRanges.key())?
+  //       .map(|x| x.value())
+  //       .unwrap_or(0);
+  //     let outputs_traversed = statistic_to_count
+  //       .get(&Statistic::OutputsTraversed.key())?
+  //       .map(|x| x.value())
+  //       .unwrap_or(0);
+  //     Info {
+  //       index_path: self.path.clone(),
+  //       blocks_indexed: wtx
+  //         .open_table(HEIGHT_TO_BLOCK_HASH)?
+  //         .range(0..)?
+  //         .rev()
+  //         .next()
+  //         .map(|(height, _hash)| height.value() + 1)
+  //         .unwrap_or(0),
+  //       branch_pages: stats.branch_pages(),
+  //       fragmented_bytes: stats.fragmented_bytes(),
+  //       index_file_size: fs::metadata(&self.path)?.len(),
+  //       leaf_pages: stats.leaf_pages(),
+  //       metadata_bytes: stats.metadata_bytes(),
+  //       sat_ranges,
+  //       outputs_traversed,
+  //       page_size: stats.page_size(),
+  //       stored_bytes: stats.stored_bytes(),
+  //       transactions: wtx
+  //         .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+  //         .range(0..)?
+  //         .map(
+  //           |(starting_block_count, starting_timestamp)| TransactionInfo {
+  //             starting_block_count: starting_block_count.value(),
+  //             starting_timestamp: starting_timestamp.value(),
+  //           },
+  //         )
+  //         .collect(),
+  //       tree_height: stats.tree_height(),
+  //       utxos_indexed: wtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
+  //     }
+  //   };
 
-    Ok(info)
-  }
+  //   Ok(info)
+  // }
 
   pub(crate) fn update(&self) -> Result {
     Updater::update(self)
   }
 
-  pub(crate) fn is_reorged(&self) -> bool {
-    self.reorged.load(atomic::Ordering::Relaxed)
-  }
+  // pub(crate) fn is_reorged(&self) -> bool {
+  //   self.reorged.load(atomic::Ordering::Relaxed)
+  // }
 
   // fn begin_read(&self) -> Result<rtx::Rtx> {
   //   Ok(rtx::Rtx(self.database.begin_read()?))
@@ -916,29 +916,29 @@ mod tests {
     }
   }
 
-  #[test]
-  fn height_limit() {
-    {
-      let context = Context::builder().args(["--height-limit", "0"]).build();
-      context.mine_blocks(1);
-      assert_eq!(context.index.height().unwrap(), None);
-      assert_eq!(context.index.block_count().unwrap(), 0);
-    }
+  // #[test]
+  // fn height_limit() {
+  //   {
+  //     let context = Context::builder().args(["--height-limit", "0"]).build();
+  //     context.mine_blocks(1);
+  //     assert_eq!(context.index.height().unwrap(), None);
+  //     assert_eq!(context.index.block_count().unwrap(), 0);
+  //   }
 
-    {
-      let context = Context::builder().args(["--height-limit", "1"]).build();
-      context.mine_blocks(1);
-      assert_eq!(context.index.height().unwrap(), Some(Height(0)));
-      assert_eq!(context.index.block_count().unwrap(), 1);
-    }
+  //   {
+  //     let context = Context::builder().args(["--height-limit", "1"]).build();
+  //     context.mine_blocks(1);
+  //     assert_eq!(context.index.height().unwrap(), Some(Height(0)));
+  //     assert_eq!(context.index.block_count().unwrap(), 1);
+  //   }
 
-    {
-      let context = Context::builder().args(["--height-limit", "2"]).build();
-      context.mine_blocks(2);
-      assert_eq!(context.index.height().unwrap(), Some(Height(1)));
-      assert_eq!(context.index.block_count().unwrap(), 2);
-    }
-  }
+  //   {
+  //     let context = Context::builder().args(["--height-limit", "2"]).build();
+  //     context.mine_blocks(2);
+  //     assert_eq!(context.index.height().unwrap(), Some(Height(1)));
+  //     assert_eq!(context.index.block_count().unwrap(), 2);
+  //   }
+  // }
 
   #[test]
   fn list_first_coinbase_transaction() {
