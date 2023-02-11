@@ -170,7 +170,8 @@ impl Updater {
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
     // NB: We temporarily always fetch transactions, to avoid expensive cache misses.
-    let first_inscription_height = index.first_inscription_height.min(0);
+    let first_inscription_height = 0; // pub
+    // let first_inscription_height = index.first_inscription_height.min(0);
 
     thread::spawn(move || loop {
       // if let Some(height_limit) = height_limit {

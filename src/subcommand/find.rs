@@ -13,16 +13,19 @@ pub struct Output {
 
 impl Find {
   pub(crate) fn run(self, options: Options) -> Result {
-    let index = Index::open(&options)?;
+    Ok(()) // pub
 
-    index.update()?;
 
-    match index.find(self.sat.0)? {
-      Some(satpoint) => {
-        print_json(Output { satpoint })?;
-        Ok(())
-      }
-      None => Err(anyhow!("sat has not been mined as of index height")),
-    }
+    // let index = Index::open(&options)?;
+
+    // index.update()?;
+
+    // match index.find(self.sat.0)? {
+    //   Some(satpoint) => {
+    //     print_json(Output { satpoint })?;
+    //     Ok(())
+    //   }
+    //   None => Err(anyhow!("sat has not been mined as of index height")),
+    // }
   }
 }

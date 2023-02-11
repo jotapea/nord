@@ -284,12 +284,17 @@ impl Index {
   // }
 
   pub(crate) fn update(&self) -> Result {
-    Updater::update(self)
+    Ok(()) // pub
+
+    // Updater::update(self)
   }
 
-  // pub(crate) fn is_reorged(&self) -> bool {
-  //   self.reorged.load(atomic::Ordering::Relaxed)
-  // }
+  pub(crate) fn is_reorged(&self) -> bool {
+    // pub
+    false
+
+    // self.reorged.load(atomic::Ordering::Relaxed)
+  }
 
   // fn begin_read(&self) -> Result<rtx::Rtx> {
   //   Ok(rtx::Rtx(self.database.begin_read()?))
@@ -330,29 +335,42 @@ impl Index {
   //     .unwrap_or(0)
   // }
 
-  // pub(crate) fn height(&self) -> Result<Option<Height>> {
-  //   self.begin_read()?.height()
-  // }
+  pub(crate) fn height(&self) -> Result<Option<Height>> {
+    // pub
+    Ok(None)
 
-  // pub(crate) fn block_count(&self) -> Result<u64> {
-  //   self.begin_read()?.block_count()
-  // }
+    // self.begin_read()?.height()
+  }
 
-  // pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
-  //   let mut blocks = Vec::new();
+  pub(crate) fn block_count(&self) -> Result<u64> {
+    // pub
+    Ok(1000)
 
-  //   let rtx = self.begin_read()?;
+    // self.begin_read()?.block_count()
+  }
 
-  //   let block_count = rtx.block_count()?;
+  pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
 
-  //   let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    ////////
+    // pub
+    let mut blocks = Vec::new();
+    Ok(blocks)
+    ////////
 
-  //   for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-  //     blocks.push((next.0.value(), Entry::load(*next.1.value())));
-  //   }
+    // let mut blocks = Vec::new();
 
-  //   Ok(blocks)
-  // }
+    // let rtx = self.begin_read()?;
+
+    // let block_count = rtx.block_count()?;
+
+    // let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
+
+    // for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
+    //   blocks.push((next.0.value(), Entry::load(*next.1.value())));
+    // }
+
+    // Ok(blocks)
+  }
 
   pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
     Ok(None) // pub
@@ -412,44 +430,51 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  // pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(SAT_TO_INSCRIPTION_ID)?
-  //       .get(&sat.n())?
-  //       .map(|inscription_id| Entry::load(*inscription_id.value())),
-  //   )
-  // }
+  pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
+    Ok(None) // pub
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(SAT_TO_INSCRIPTION_ID)?
+    //     .get(&sat.n())?
+    //     .map(|inscription_id| Entry::load(*inscription_id.value())),
+    // )
+  }
 
-  // pub(crate) fn get_inscription_id_by_inscription_number(
-  //   &self,
-  //   n: u64,
-  // ) -> Result<Option<InscriptionId>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-  //       .get(&n)?
-  //       .map(|id| Entry::load(*id.value())),
-  //   )
-  // }
+  pub(crate) fn get_inscription_id_by_inscription_number(
+    &self,
+    n: u64,
+  ) -> Result<Option<InscriptionId>> {
+    // pub
+    Ok(None)
 
-  // pub(crate) fn get_inscription_satpoint_by_id(
-  //   &self,
-  //   inscription_id: InscriptionId,
-  // ) -> Result<Option<SatPoint>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-  //       .get(&inscription_id.store())?
-  //       .map(|satpoint| Entry::load(*satpoint.value())),
-  //   )
-  // }
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+    //     .get(&n)?
+    //     .map(|id| Entry::load(*id.value())),
+    // )
+  }
+
+  pub(crate) fn get_inscription_satpoint_by_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<SatPoint>> {
+    // pub
+    Ok(None)
+
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+    //     .get(&inscription_id.store())?
+    //     .map(|satpoint| Entry::load(*satpoint.value())),
+    // )
+  }
 
   pub(crate) fn get_inscription_by_id(
     &self,
@@ -472,23 +497,31 @@ impl Index {
     )
   }
 
-  // pub(crate) fn get_inscriptions_on_output(
-  //   &self,
-  //   outpoint: OutPoint,
-  // ) -> Result<Vec<InscriptionId>> {
-  //   Ok(
-  //     Self::inscriptions_on_output(
-  //       &self
-  //         .database
-  //         .begin_read()?
-  //         .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
-  //       outpoint,
-  //     )?
-  //     .into_iter()
-  //     .map(|(_satpoint, inscription_id)| inscription_id)
-  //     .collect(),
-  //   )
-  // }
+  pub(crate) fn get_inscriptions_on_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<InscriptionId>> {
+
+    /////////
+    // pub
+    let mut something = Vec::new();
+    // something.push(InscriptionId::from(outpoint.txid));
+    Ok(something)
+    /////////
+
+    // Ok(
+    //   Self::inscriptions_on_output(
+    //     &self
+    //       .database
+    //       .begin_read()?
+    //       .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
+    //     outpoint,
+    //   )?
+    //   .into_iter()
+    //   .map(|(_satpoint, inscription_id)| inscription_id)
+    //   .collect(),
+    // )
+  }
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
@@ -603,6 +636,10 @@ impl Index {
 
     match self.get_block_by_height(height)? {
       Some(block) => Ok(Blocktime::confirmed(block.header.time)),
+
+      // pub
+      None => todo!(),
+
       // None => {
       //   let tx = self.database.begin_read()?;
 
@@ -631,109 +668,152 @@ impl Index {
     }
   }
 
-  // pub(crate) fn get_inscriptions(
-  //   &self,
-  //   n: Option<usize>,
-  // ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-  //       .range::<&[u8; 44]>(&[0; 44]..)?
-  //       .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
-  //       .take(n.unwrap_or(usize::MAX))
-  //       .collect(),
-  //   )
-  // }
+  pub(crate) fn get_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
 
-  // pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-  //       .iter()?
-  //       .rev()
-  //       .take(8)
-  //       .map(|(_number, id)| Entry::load(*id.value()))
-  //       .collect(),
-  //   )
-  // }
+    //////////////
+    // pub
+    Ok(BTreeMap::from([(
+      SatPoint {
+      outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+        .parse()
+        .unwrap(),
+      offset: 0,
+      },
+      InscriptionId {
+        txid: Txid::all_zeros(),
+        index: 0xFFFFFFFF,
+      }
+    )]))
+    //////////////
 
-  // pub(crate) fn get_latest_inscriptions_with_prev_and_next(
-  //   &self,
-  //   n: usize,
-  //   from: Option<u64>,
-  // ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
-  //   let rtx = self.database.begin_read()?;
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+    //     .range::<&[u8; 44]>(&[0; 44]..)?
+    //     .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+    //     .take(n.unwrap_or(usize::MAX))
+    //     .collect(),
+    // )
+  }
 
-  //   let inscription_number_to_inscription_id =
-  //     rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+    /////////
+    // pub
+    let mut something = Vec::new();
+    // something.push(InscriptionId::from(outpoint.txid));
+    Ok(something)
+    /////////
 
-  //   let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
-  //     Some((number, _id)) => number.value(),
-  //     None => return Ok(Default::default()),
-  //   };
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+    //     .iter()?
+    //     .rev()
+    //     .take(8)
+    //     .map(|(_number, id)| Entry::load(*id.value()))
+    //     .collect(),
+    // )
+  }
 
-  //   let from = from.unwrap_or(latest);
+  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
+    &self,
+    n: usize,
+    from: Option<u64>,
+  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
 
-  //   let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
-  //     inscription_number_to_inscription_id
-  //       .get(&prev)?
-  //       .map(|_| prev)
-  //   } else {
-  //     None
-  //   };
 
-  //   let next = if from < latest {
-  //     Some(
-  //       from
-  //         .checked_add(n.try_into()?)
-  //         .unwrap_or(latest)
-  //         .min(latest),
-  //     )
-  //   } else {
-  //     None
-  //   };
+    /////////
+    // pub
+    Ok((Vec::new(), None, None))
+    /////////
 
-  //   let inscriptions = inscription_number_to_inscription_id
-  //     .range(..=from)?
-  //     .rev()
-  //     .take(n)
-  //     .map(|(_number, id)| Entry::load(*id.value()))
-  //     .collect();
 
-  //   Ok((inscriptions, prev, next))
-  // }
+    // let rtx = self.database.begin_read()?;
 
-  // pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-  //       .iter()?
-  //       .rev()
-  //       .take(n)
-  //       .map(|(number, id)| (number.value(), Entry::load(*id.value())))
-  //       .collect(),
-  //   )
-  // }
+    // let inscription_number_to_inscription_id =
+    //   rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-  // pub(crate) fn get_inscription_entry(
-  //   &self,
-  //   inscription_id: InscriptionId,
-  // ) -> Result<Option<InscriptionEntry>> {
-  //   Ok(
-  //     self
-  //       .database
-  //       .begin_read()?
-  //       .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
-  //       .get(&inscription_id.store())?
-  //       .map(|value| InscriptionEntry::load(value.value())),
-  //   )
-  // }
+    // let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
+    //   Some((number, _id)) => number.value(),
+    //   None => return Ok(Default::default()),
+    // };
+
+    // let from = from.unwrap_or(latest);
+
+    // let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
+    //   inscription_number_to_inscription_id
+    //     .get(&prev)?
+    //     .map(|_| prev)
+    // } else {
+    //   None
+    // };
+
+    // let next = if from < latest {
+    //   Some(
+    //     from
+    //       .checked_add(n.try_into()?)
+    //       .unwrap_or(latest)
+    //       .min(latest),
+    //   )
+    // } else {
+    //   None
+    // };
+
+    // let inscriptions = inscription_number_to_inscription_id
+    //   .range(..=from)?
+    //   .rev()
+    //   .take(n)
+    //   .map(|(_number, id)| Entry::load(*id.value()))
+    //   .collect();
+
+    // Ok((inscriptions, prev, next))
+  }
+
+  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
+    /////////
+    // pub
+    let mut something = Vec::new();
+    // something.push(InscriptionId::from(outpoint.txid));
+    Ok(something)
+    /////////
+
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+    //     .iter()?
+    //     .rev()
+    //     .take(n)
+    //     .map(|(number, id)| (number.value(), Entry::load(*id.value())))
+    //     .collect(),
+    // )
+  }
+
+  pub(crate) fn get_inscription_entry(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<InscriptionEntry>> {
+
+    // pub
+    Ok(None)
+
+    // Ok(
+    //   self
+    //     .database
+    //     .begin_read()?
+    //     .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+    //     .get(&inscription_id.store())?
+    //     .map(|value| InscriptionEntry::load(value.value())),
+    // )
+  }
 
   // #[cfg(test)]
   // fn assert_inscription_location(
