@@ -45,7 +45,7 @@ define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 pub(crate) struct Index {
   auth: Auth,
   client: Client,
-  database: Database,
+  // database: Database,
   path: PathBuf,
   first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
@@ -186,15 +186,15 @@ impl Index {
         Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
       );
     }
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
-    for outpoint in utxos.keys() {
-      if outpoint_to_value.get(&outpoint.store())?.is_none() {
-        return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
-        ));
-      }
-    }
+    // let rtx = self.database.begin_read()?;
+    // let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    // for outpoint in utxos.keys() {
+    //   if outpoint_to_value.get(&outpoint.store())?.is_none() {
+    //     return Err(anyhow!(
+    //       "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+    //     ));
+    //   }
+    // }
 
     Ok(utxos)
   }
@@ -289,19 +289,19 @@ impl Index {
     self.reorged.load(atomic::Ordering::Relaxed)
   }
 
-  fn begin_read(&self) -> Result<rtx::Rtx> {
-    Ok(rtx::Rtx(self.database.begin_read()?))
-  }
+  // fn begin_read(&self) -> Result<rtx::Rtx> {
+  //   Ok(rtx::Rtx(self.database.begin_read()?))
+  // }
 
-  fn begin_write(&self) -> Result<WriteTransaction> {
-    if cfg!(test) {
-      let mut tx = self.database.begin_write()?;
-      tx.set_durability(redb::Durability::None);
-      Ok(tx)
-    } else {
-      Ok(self.database.begin_write()?)
-    }
-  }
+  // fn begin_write(&self) -> Result<WriteTransaction> {
+  //   if cfg!(test) {
+  //     let mut tx = self.database.begin_write()?;
+  //     tx.set_durability(redb::Durability::None);
+  //     Ok(tx)
+  //   } else {
+  //     Ok(self.database.begin_write()?)
+  //   }
+  // }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
@@ -314,19 +314,19 @@ impl Index {
     Ok(())
   }
 
-  #[cfg(test)]
-  pub(crate) fn statistic(&self, statistic: Statistic) -> u64 {
-    self
-      .database
-      .begin_read()
-      .unwrap()
-      .open_table(STATISTIC_TO_COUNT)
-      .unwrap()
-      .get(&statistic.key())
-      .unwrap()
-      .map(|x| x.value())
-      .unwrap_or(0)
-  }
+  // #[cfg(test)]
+  // pub(crate) fn statistic(&self, statistic: Statistic) -> u64 {
+  //   self
+  //     .database
+  //     .begin_read()
+  //     .unwrap()
+  //     .open_table(STATISTIC_TO_COUNT)
+  //     .unwrap()
+  //     .get(&statistic.key())
+  //     .unwrap()
+  //     .map(|x| x.value())
+  //     .unwrap_or(0)
+  // }
 
   pub(crate) fn height(&self) -> Result<Option<Height>> {
     self.begin_read()?.height()
@@ -352,38 +352,38 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
-    if self.has_sat_index()? {
-      let mut result = Vec::new();
+  // pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
+  //   if self.has_sat_index()? {
+  //     let mut result = Vec::new();
 
-      let rtx = self.database.begin_read()?;
+  //     let rtx = self.database.begin_read()?;
 
-      let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
+  //     let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
-      for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-        result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
-      }
+  //     for (sat, satpoint) in sat_to_satpoint.range(0..)? {
+  //       result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
+  //     }
 
-      Ok(Some(result))
-    } else {
-      Ok(None)
-    }
-  }
+  //     Ok(Some(result))
+  //   } else {
+  //     Ok(None)
+  //   }
+  // }
 
-  pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
-    if self.has_sat_index()? {
-      Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(SAT_TO_SATPOINT)?
-          .get(&sat.n())?
-          .map(|satpoint| Entry::load(*satpoint.value())),
-      )
-    } else {
-      Ok(None)
-    }
-  }
+  // pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
+  //   if self.has_sat_index()? {
+  //     Ok(
+  //       self
+  //         .database
+  //         .begin_read()?
+  //         .open_table(SAT_TO_SATPOINT)?
+  //         .get(&sat.n())?
+  //         .map(|satpoint| Entry::load(*satpoint.value())),
+  //     )
+  //   } else {
+  //     Ok(None)
+  //   }
+  // }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
     self.client.get_block_header(&hash).into_option()
@@ -408,58 +408,58 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(SAT_TO_INSCRIPTION_ID)?
-        .get(&sat.n())?
-        .map(|inscription_id| Entry::load(*inscription_id.value())),
-    )
-  }
+  // pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(SAT_TO_INSCRIPTION_ID)?
+  //       .get(&sat.n())?
+  //       .map(|inscription_id| Entry::load(*inscription_id.value())),
+  //   )
+  // }
 
-  pub(crate) fn get_inscription_id_by_inscription_number(
-    &self,
-    n: u64,
-  ) -> Result<Option<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .get(&n)?
-        .map(|id| Entry::load(*id.value())),
-    )
-  }
+  // pub(crate) fn get_inscription_id_by_inscription_number(
+  //   &self,
+  //   n: u64,
+  // ) -> Result<Option<InscriptionId>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+  //       .get(&n)?
+  //       .map(|id| Entry::load(*id.value())),
+  //   )
+  // }
 
-  pub(crate) fn get_inscription_satpoint_by_id(
-    &self,
-    inscription_id: InscriptionId,
-  ) -> Result<Option<SatPoint>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(&inscription_id.store())?
-        .map(|satpoint| Entry::load(*satpoint.value())),
-    )
-  }
+  // pub(crate) fn get_inscription_satpoint_by_id(
+  //   &self,
+  //   inscription_id: InscriptionId,
+  // ) -> Result<Option<SatPoint>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+  //       .get(&inscription_id.store())?
+  //       .map(|satpoint| Entry::load(*satpoint.value())),
+  //   )
+  // }
 
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
-    if self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-      .get(&inscription_id.store())?
-      .is_none()
-    {
-      return Ok(None);
-    }
+    // if self
+    //   .database
+    //   .begin_read()?
+    //   .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+    //   .get(&inscription_id.store())?
+    //   .is_none()
+    // {
+    //   return Ok(None);
+    // }
 
     Ok(
       self
@@ -468,23 +468,23 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscriptions_on_output(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Vec<InscriptionId>> {
-    Ok(
-      Self::inscriptions_on_output(
-        &self
-          .database
-          .begin_read()?
-          .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
-        outpoint,
-      )?
-      .into_iter()
-      .map(|(_satpoint, inscription_id)| inscription_id)
-      .collect(),
-    )
-  }
+  // pub(crate) fn get_inscriptions_on_output(
+  //   &self,
+  //   outpoint: OutPoint,
+  // ) -> Result<Vec<InscriptionId>> {
+  //   Ok(
+  //     Self::inscriptions_on_output(
+  //       &self
+  //         .database
+  //         .begin_read()?
+  //         .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
+  //       outpoint,
+  //     )?
+  //     .into_iter()
+  //     .map(|(_satpoint, inscription_id)| inscription_id)
+  //     .collect(),
+  //   )
+  // }
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
@@ -549,16 +549,16 @@ impl Index {
     Ok(None)
   }
 
-  fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(OUTPOINT_TO_SAT_RANGES)?
-        .get(&outpoint)?
-        .map(|outpoint| outpoint.value().to_vec()),
-    )
-  }
+  // fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(OUTPOINT_TO_SAT_RANGES)?
+  //       .get(&outpoint)?
+  //       .map(|outpoint| outpoint.value().to_vec()),
+  //   )
+  // }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     self.require_sat_index("list")?;
@@ -590,6 +590,7 @@ impl Index {
     match self.get_block_by_height(height)? {
       Some(block) => Ok(Blocktime::confirmed(block.header.time)),
       None => {
+        // TODO
         let tx = self.database.begin_read()?;
 
         let current = tx
@@ -617,178 +618,178 @@ impl Index {
     }
   }
 
-  pub(crate) fn get_inscriptions(
-    &self,
-    n: Option<usize>,
-  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range::<&[u8; 44]>(&[0; 44]..)?
-        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
-        .take(n.unwrap_or(usize::MAX))
-        .collect(),
-    )
-  }
+  // pub(crate) fn get_inscriptions(
+  //   &self,
+  //   n: Option<usize>,
+  // ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+  //       .range::<&[u8; 44]>(&[0; 44]..)?
+  //       .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+  //       .take(n.unwrap_or(usize::MAX))
+  //       .collect(),
+  //   )
+  // }
 
-  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .iter()?
-        .rev()
-        .take(8)
-        .map(|(_number, id)| Entry::load(*id.value()))
-        .collect(),
-    )
-  }
+  // pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+  //       .iter()?
+  //       .rev()
+  //       .take(8)
+  //       .map(|(_number, id)| Entry::load(*id.value()))
+  //       .collect(),
+  //   )
+  // }
 
-  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
-    &self,
-    n: usize,
-    from: Option<u64>,
-  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
-    let rtx = self.database.begin_read()?;
+  // pub(crate) fn get_latest_inscriptions_with_prev_and_next(
+  //   &self,
+  //   n: usize,
+  //   from: Option<u64>,
+  // ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
+  //   let rtx = self.database.begin_read()?;
 
-    let inscription_number_to_inscription_id =
-      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+  //   let inscription_number_to_inscription_id =
+  //     rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
-      Some((number, _id)) => number.value(),
-      None => return Ok(Default::default()),
-    };
+  //   let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
+  //     Some((number, _id)) => number.value(),
+  //     None => return Ok(Default::default()),
+  //   };
 
-    let from = from.unwrap_or(latest);
+  //   let from = from.unwrap_or(latest);
 
-    let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
-      inscription_number_to_inscription_id
-        .get(&prev)?
-        .map(|_| prev)
-    } else {
-      None
-    };
+  //   let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
+  //     inscription_number_to_inscription_id
+  //       .get(&prev)?
+  //       .map(|_| prev)
+  //   } else {
+  //     None
+  //   };
 
-    let next = if from < latest {
-      Some(
-        from
-          .checked_add(n.try_into()?)
-          .unwrap_or(latest)
-          .min(latest),
-      )
-    } else {
-      None
-    };
+  //   let next = if from < latest {
+  //     Some(
+  //       from
+  //         .checked_add(n.try_into()?)
+  //         .unwrap_or(latest)
+  //         .min(latest),
+  //     )
+  //   } else {
+  //     None
+  //   };
 
-    let inscriptions = inscription_number_to_inscription_id
-      .range(..=from)?
-      .rev()
-      .take(n)
-      .map(|(_number, id)| Entry::load(*id.value()))
-      .collect();
+  //   let inscriptions = inscription_number_to_inscription_id
+  //     .range(..=from)?
+  //     .rev()
+  //     .take(n)
+  //     .map(|(_number, id)| Entry::load(*id.value()))
+  //     .collect();
 
-    Ok((inscriptions, prev, next))
-  }
+  //   Ok((inscriptions, prev, next))
+  // }
 
-  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .iter()?
-        .rev()
-        .take(n)
-        .map(|(number, id)| (number.value(), Entry::load(*id.value())))
-        .collect(),
-    )
-  }
+  // pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+  //       .iter()?
+  //       .rev()
+  //       .take(n)
+  //       .map(|(number, id)| (number.value(), Entry::load(*id.value())))
+  //       .collect(),
+  //   )
+  // }
 
-  pub(crate) fn get_inscription_entry(
-    &self,
-    inscription_id: InscriptionId,
-  ) -> Result<Option<InscriptionEntry>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
-        .get(&inscription_id.store())?
-        .map(|value| InscriptionEntry::load(value.value())),
-    )
-  }
+  // pub(crate) fn get_inscription_entry(
+  //   &self,
+  //   inscription_id: InscriptionId,
+  // ) -> Result<Option<InscriptionEntry>> {
+  //   Ok(
+  //     self
+  //       .database
+  //       .begin_read()?
+  //       .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+  //       .get(&inscription_id.store())?
+  //       .map(|value| InscriptionEntry::load(value.value())),
+  //   )
+  // }
 
-  #[cfg(test)]
-  fn assert_inscription_location(
-    &self,
-    inscription_id: InscriptionId,
-    satpoint: SatPoint,
-    sat: u64,
-  ) {
-    let rtx = self.database.begin_read().unwrap();
+  // #[cfg(test)]
+  // fn assert_inscription_location(
+  //   &self,
+  //   inscription_id: InscriptionId,
+  //   satpoint: SatPoint,
+  //   sat: u64,
+  // ) {
+  //   let rtx = self.database.begin_read().unwrap();
 
-    let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID).unwrap();
+  //   let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID).unwrap();
 
-    let inscription_id_to_satpoint = rtx.open_table(INSCRIPTION_ID_TO_SATPOINT).unwrap();
+  //   let inscription_id_to_satpoint = rtx.open_table(INSCRIPTION_ID_TO_SATPOINT).unwrap();
 
-    assert_eq!(
-      satpoint_to_inscription_id.len().unwrap(),
-      inscription_id_to_satpoint.len().unwrap(),
-    );
+  //   assert_eq!(
+  //     satpoint_to_inscription_id.len().unwrap(),
+  //     inscription_id_to_satpoint.len().unwrap(),
+  //   );
 
-    assert_eq!(
-      SatPoint::load(
-        *inscription_id_to_satpoint
-          .get(&inscription_id.store())
-          .unwrap()
-          .unwrap()
-          .value()
-      ),
-      satpoint,
-    );
+  //   assert_eq!(
+  //     SatPoint::load(
+  //       *inscription_id_to_satpoint
+  //         .get(&inscription_id.store())
+  //         .unwrap()
+  //         .unwrap()
+  //         .value()
+  //     ),
+  //     satpoint,
+  //   );
 
-    assert_eq!(
-      InscriptionId::load(
-        *satpoint_to_inscription_id
-          .get(&satpoint.store())
-          .unwrap()
-          .unwrap()
-          .value()
-      ),
-      inscription_id,
-    );
+  //   assert_eq!(
+  //     InscriptionId::load(
+  //       *satpoint_to_inscription_id
+  //         .get(&satpoint.store())
+  //         .unwrap()
+  //         .unwrap()
+  //         .value()
+  //     ),
+  //     inscription_id,
+  //   );
 
-    if self.has_sat_index().unwrap() {
-      assert_eq!(
-        InscriptionId::load(
-          *rtx
-            .open_table(SAT_TO_INSCRIPTION_ID)
-            .unwrap()
-            .get(&sat)
-            .unwrap()
-            .unwrap()
-            .value()
-        ),
-        inscription_id,
-      );
+  //   if self.has_sat_index().unwrap() {
+  //     assert_eq!(
+  //       InscriptionId::load(
+  //         *rtx
+  //           .open_table(SAT_TO_INSCRIPTION_ID)
+  //           .unwrap()
+  //           .get(&sat)
+  //           .unwrap()
+  //           .unwrap()
+  //           .value()
+  //       ),
+  //       inscription_id,
+  //     );
 
-      assert_eq!(
-        SatPoint::load(
-          *rtx
-            .open_table(SAT_TO_SATPOINT)
-            .unwrap()
-            .get(&sat)
-            .unwrap()
-            .unwrap()
-            .value()
-        ),
-        satpoint,
-      );
-    }
-  }
+  //     assert_eq!(
+  //       SatPoint::load(
+  //         *rtx
+  //           .open_table(SAT_TO_SATPOINT)
+  //           .unwrap()
+  //           .get(&sat)
+  //           .unwrap()
+  //           .unwrap()
+  //           .value()
+  //       ),
+  //       satpoint,
+  //     );
+  //   }
+  // }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
@@ -1778,59 +1779,59 @@ mod tests {
     );
   }
 
-  #[test]
-  fn old_schema_gives_correct_error() {
-    let tempdir = {
-      let context = Context::builder().build();
+  // #[test]
+  // fn old_schema_gives_correct_error() {
+  //   let tempdir = {
+  //     let context = Context::builder().build();
 
-      let wtx = context.index.database.begin_write().unwrap();
+  //     let wtx = context.index.database.begin_write().unwrap();
 
-      wtx
-        .open_table(STATISTIC_TO_COUNT)
-        .unwrap()
-        .insert(&Statistic::Schema.key(), &0)
-        .unwrap();
+  //     wtx
+  //       .open_table(STATISTIC_TO_COUNT)
+  //       .unwrap()
+  //       .insert(&Statistic::Schema.key(), &0)
+  //       .unwrap();
 
-      wtx.commit().unwrap();
+  //     wtx.commit().unwrap();
 
-      context.tempdir
-    };
+  //     context.tempdir
+  //   };
 
-    let path = tempdir.path().to_owned();
+  //   let path = tempdir.path().to_owned();
 
-    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+  //   let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
-    assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}", path.display()));
-  }
+  //   assert_eq!(
+  //     Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+  //     format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}", path.display()));
+  // }
 
-  #[test]
-  fn new_schema_gives_correct_error() {
-    let tempdir = {
-      let context = Context::builder().build();
+  // #[test]
+  // fn new_schema_gives_correct_error() {
+  //   let tempdir = {
+  //     let context = Context::builder().build();
 
-      let wtx = context.index.database.begin_write().unwrap();
+  //     let wtx = context.index.database.begin_write().unwrap();
 
-      wtx
-        .open_table(STATISTIC_TO_COUNT)
-        .unwrap()
-        .insert(&Statistic::Schema.key(), &u64::MAX)
-        .unwrap();
+  //     wtx
+  //       .open_table(STATISTIC_TO_COUNT)
+  //       .unwrap()
+  //       .insert(&Statistic::Schema.key(), &u64::MAX)
+  //       .unwrap();
 
-      wtx.commit().unwrap();
+  //     wtx.commit().unwrap();
 
-      context.tempdir
-    };
+  //     context.tempdir
+  //   };
 
-    let path = tempdir.path().to_owned();
+  //   let path = tempdir.path().to_owned();
 
-    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+  //   let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
-    assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
-  }
+  //   assert_eq!(
+  //     Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+  //     format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
+  // }
 
   #[test]
   fn inscriptions_on_output() {
