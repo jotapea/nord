@@ -11,7 +11,8 @@ use {
   std::{iter::Peekable, str},
 };
 
-const PROTOCOL_ID: &[u8] = b"ord";
+const PROTOCOL_ID: &[u8] = b"pub";
+// const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
