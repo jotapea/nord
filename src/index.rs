@@ -144,88 +144,6 @@ impl Index {
 
     let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
 
-    let data_dir = options.data_dir()?;
-
-    if let Err(err) = fs::create_dir_all(&data_dir) {
-      bail!("failed to create data dir `{}`: {err}", data_dir.display());
-    }
-
-    let path = if let Some(path) = &options.index {
-      path.clone()
-    } else {
-      data_dir.join("index.redb")
-    };
-
-    let database = match unsafe { Database::builder().open_mmapped(&path) } {
-      Ok(database) => {
-        let schema_version = database
-          .begin_read()?
-          .open_table(STATISTIC_TO_COUNT)?
-          .get(&Statistic::Schema.key())?
-          .map(|x| x.value())
-          .unwrap_or(0);
-
-        match schema_version.cmp(&SCHEMA_VERSION) {
-          cmp::Ordering::Less =>
-            bail!(
-              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Greater =>
-            bail!(
-              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Equal => {
-          }
-        }
-
-        database
-      }
-      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
-        let database = unsafe {
-          Database::builder()
-            .set_write_strategy(if cfg!(test) {
-              WriteStrategy::Checksum
-            } else {
-              WriteStrategy::TwoPhase
-            })
-            .create_mmapped(&path)?
-        };
-        let tx = database.begin_write()?;
-
-        #[cfg(test)]
-        let tx = {
-          let mut tx = tx;
-          tx.set_durability(redb::Durability::None);
-          tx
-        };
-
-        tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
-        tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-        tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-        tx.open_table(OUTPOINT_TO_VALUE)?;
-        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
-        tx.open_table(SAT_TO_INSCRIPTION_ID)?;
-        tx.open_table(SAT_TO_SATPOINT)?;
-        tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
-
-        tx.open_table(STATISTIC_TO_COUNT)?
-          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
-
-        if options.index_sats {
-          tx.open_table(OUTPOINT_TO_SAT_RANGES)?
-            .insert(&OutPoint::null().store(), [].as_slice())?;
-        }
-
-        tx.commit()?;
-
-        database
-      }
-      Err(error) => return Err(error.into()),
-    };
-
     let genesis_block_coinbase_transaction =
       options.chain().genesis_block().coinbase().unwrap().clone();
 
@@ -233,12 +151,7 @@ impl Index {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       auth,
       client,
-      database,
-      path,
-      first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
-      height_limit: options.height_limit,
-      reorged: AtomicBool::new(false),
       rpc_url,
     })
   }
