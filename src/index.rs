@@ -215,13 +215,14 @@ impl Index {
       .collect()
   }
 
-  // pub(crate) fn has_sat_index(&self) -> Result<bool> {
-  //   match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
-  //     Ok(_) => Ok(true),
-  //     Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
-  //     Err(err) => Err(err.into()),
-  //   }
-  // }
+  pub(crate) fn has_sat_index(&self) -> Result<bool> {
+    Ok(false) // pub
+    // match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
+    //   Ok(_) => Ok(true),
+    //   Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
+    //   Err(err) => Err(err.into()),
+    // }
+  }
 
   // fn require_sat_index(&self, feature: &str) -> Result {
   //   if !self.has_sat_index()? {
@@ -353,38 +354,40 @@ impl Index {
   //   Ok(blocks)
   // }
 
-  // pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
-  //   if self.has_sat_index()? {
-  //     let mut result = Vec::new();
+  pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
+    Ok(None) // pub
+    // if self.has_sat_index()? {
+    //   let mut result = Vec::new();
 
-  //     let rtx = self.database.begin_read()?;
+    //   let rtx = self.database.begin_read()?;
 
-  //     let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
+    //   let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
-  //     for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-  //       result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
-  //     }
+    //   for (sat, satpoint) in sat_to_satpoint.range(0..)? {
+    //     result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
+    //   }
 
-  //     Ok(Some(result))
-  //   } else {
-  //     Ok(None)
-  //   }
-  // }
+    //   Ok(Some(result))
+    // } else {
+    //   Ok(None)
+    // }
+  }
 
-  // pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
-  //   if self.has_sat_index()? {
-  //     Ok(
-  //       self
-  //         .database
-  //         .begin_read()?
-  //         .open_table(SAT_TO_SATPOINT)?
-  //         .get(&sat.n())?
-  //         .map(|satpoint| Entry::load(*satpoint.value())),
-  //     )
-  //   } else {
-  //     Ok(None)
-  //   }
-  // }
+  pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
+    Ok(None) // pub
+    // if self.has_sat_index()? {
+    //   Ok(
+    //     self
+    //       .database
+    //       .begin_read()?
+    //       .open_table(SAT_TO_SATPOINT)?
+    //       .get(&sat.n())?
+    //       .map(|satpoint| Entry::load(*satpoint.value())),
+    //   )
+    // } else {
+    //   Ok(None)
+    // }
+  }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
     self.client.get_block_header(&hash).into_option()
