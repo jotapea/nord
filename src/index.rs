@@ -1,7 +1,8 @@
 use {
   self::{
     entry::{
-      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
+      Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
+      // BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
     updater::Updater,
@@ -10,12 +11,12 @@ use {
   crate::wallet::Wallet,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
-  chrono::SubsecRound,
+  // chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
+  // redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
-  std::sync::atomic::{self, AtomicBool},
+  // std::sync::atomic::{self, AtomicBool},
 };
 
 mod entry;
@@ -222,13 +223,13 @@ impl Index {
   //   }
   // }
 
-  fn require_sat_index(&self, feature: &str) -> Result {
-    if !self.has_sat_index()? {
-      bail!("{feature} requires index created with `--index-sats` flag")
-    }
+  // fn require_sat_index(&self, feature: &str) -> Result {
+  //   if !self.has_sat_index()? {
+  //     bail!("{feature} requires index created with `--index-sats` flag")
+  //   }
 
-    Ok(())
-  }
+  //   Ok(())
+  // }
 
   // pub(crate) fn info(&self) -> Result<Info> {
   //   let wtx = self.begin_write()?;
@@ -561,27 +562,37 @@ impl Index {
   // }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    self.require_sat_index("list")?;
 
-    let array = outpoint.store();
-
-    let sat_ranges = self.list_inner(array)?;
-
-    match sat_ranges {
-      Some(sat_ranges) => Ok(Some(List::Unspent(
-        sat_ranges
-          .chunks_exact(11)
-          .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
-          .collect(),
-      ))),
-      None => {
-        if self.is_transaction_in_active_chain(outpoint.txid)? {
-          Ok(Some(List::Spent))
-        } else {
-          Ok(None)
-        }
-      }
+    ////////////
+    // moved out
+    if self.is_transaction_in_active_chain(outpoint.txid)? {
+      Ok(Some(List::Spent))
+    } else {
+      Ok(None)
     }
+    ////////////
+
+    // self.require_sat_index("list")?;
+
+    // let array = outpoint.store();
+
+    // let sat_ranges = self.list_inner(array)?;
+
+    // match sat_ranges {
+    //   Some(sat_ranges) => Ok(Some(List::Unspent(
+    //     sat_ranges
+    //       .chunks_exact(11)
+    //       .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
+    //       .collect(),
+    //   ))),
+    //   None => {
+    //     if self.is_transaction_in_active_chain(outpoint.txid)? {
+    //       Ok(Some(List::Spent))
+    //     } else {
+    //       Ok(None)
+    //     }
+    //   }
+    // }
   }
 
   pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
@@ -790,28 +801,28 @@ impl Index {
   //   }
   // }
 
-  fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
-    outpoint: OutPoint,
-  ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
-    let start = SatPoint {
-      outpoint,
-      offset: 0,
-    }
-    .store();
+  // fn inscriptions_on_output<'a: 'tx, 'tx>(
+  //   satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
+  //   outpoint: OutPoint,
+  // ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
+  //   let start = SatPoint {
+  //     outpoint,
+  //     offset: 0,
+  //   }
+  //   .store();
 
-    let end = SatPoint {
-      outpoint,
-      offset: u64::MAX,
-    }
-    .store();
+  //   let end = SatPoint {
+  //     outpoint,
+  //     offset: u64::MAX,
+  //   }
+  //   .store();
 
-    Ok(
-      satpoint_to_id
-        .range::<&[u8; 44]>(&start..=&end)?
-        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
-    )
-  }
+  //   Ok(
+  //     satpoint_to_id
+  //       .range::<&[u8; 44]>(&start..=&end)?
+  //       .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
+  //   )
+  // }
 }
 
 #[cfg(test)]
