@@ -221,7 +221,7 @@ impl Inscribe {
     );
 
     let unsigned_commit_tx = TransactionBuilderPub::build_transaction_with_value(
-      // satpoint, //
+      satpoint, //
       // inscriptions, //
       utxos,
       commit_tx_address.clone(),

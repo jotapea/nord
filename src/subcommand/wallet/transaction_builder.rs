@@ -100,7 +100,7 @@ pub struct TransactionBuilderPub {
   fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
   // inscriptions: BTreeMap<SatPoint, InscriptionId>,
-  // outgoing: SatPoint,
+  outgoing: SatPoint,
   outputs: Vec<(Address, Amount)>,
   recipient: Address,
   unused_change_addresses: Vec<Address>,
@@ -118,7 +118,7 @@ impl TransactionBuilderPub {
   pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
   pub fn build_transaction_with_postage(
-    // outgoing: SatPoint,
+    outgoing: SatPoint,
     // inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
@@ -126,7 +126,7 @@ impl TransactionBuilderPub {
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
     Self::new(
-      // outgoing,
+      outgoing,
       // inscriptions,
       amounts,
       recipient,
@@ -138,7 +138,7 @@ impl TransactionBuilderPub {
   }
 
   pub fn build_transaction_with_value(
-    // outgoing: SatPoint,
+    outgoing: SatPoint,
     // inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
@@ -156,7 +156,7 @@ impl TransactionBuilderPub {
     }
 
     Self::new(
-      // outgoing,
+      outgoing,
       // inscriptions,
       amounts,
       recipient,
@@ -169,9 +169,9 @@ impl TransactionBuilderPub {
 
   fn build_transaction(self) -> Result<Transaction> {
     self
-      // .select_outgoing()?
-      // .align_outgoing()
-      // .pad_alignment_output()?
+      .select_outgoing()?
+      .align_outgoing()
+      .pad_alignment_output()?
       .add_value()?
       .strip_value()
       .deduct_fee()
@@ -179,7 +179,7 @@ impl TransactionBuilderPub {
   }
 
   fn new(
-    // outgoing: SatPoint,
+    outgoing: SatPoint,
     // inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
@@ -202,7 +202,7 @@ impl TransactionBuilderPub {
       fee_rate,
       inputs: Vec::new(),
       // inscriptions,
-      // outgoing,
+      outgoing,
       outputs: Vec::new(),
       recipient,
       unused_change_addresses: change.to_vec(),
@@ -210,86 +210,86 @@ impl TransactionBuilderPub {
     })
   }
 
-  // fn select_outgoing(mut self) -> Result<Self> {
-  //   // for (inscribed_satpoint, inscription_id) in &self.inscriptions {
-  //   //   if self.outgoing.outpoint == inscribed_satpoint.outpoint
-  //   //     && self.outgoing.offset != inscribed_satpoint.offset
-  //   //   {
-  //   //     return Err(Error::UtxoContainsAdditionalInscription {
-  //   //       outgoing_satpoint: self.outgoing,
-  //   //       inscribed_satpoint: *inscribed_satpoint,
-  //   //       inscription_id: *inscription_id,
-  //   //     });
-  //   //   }
-  //   // }
+  fn select_outgoing(mut self) -> Result<Self> {
+    // for (inscribed_satpoint, inscription_id) in &self.inscriptions {
+    //   if self.outgoing.outpoint == inscribed_satpoint.outpoint
+    //     && self.outgoing.offset != inscribed_satpoint.offset
+    //   {
+    //     return Err(Error::UtxoContainsAdditionalInscription {
+    //       outgoing_satpoint: self.outgoing,
+    //       inscribed_satpoint: *inscribed_satpoint,
+    //       inscription_id: *inscription_id,
+    //     });
+    //   }
+    // }
 
-  //   let amount = *self
-  //     .amounts
-  //     .get(&self.outgoing.outpoint)
-  //     .ok_or(Error::NotInWallet(self.outgoing))?;
+    let amount = *self
+      .amounts
+      .get(&self.outgoing.outpoint)
+      .ok_or(Error::NotInWallet(self.outgoing))?;
 
-  //   self.utxos.remove(&self.outgoing.outpoint);
-  //   self.inputs.push(self.outgoing.outpoint);
-  //   self.outputs.push((self.recipient.clone(), amount));
+    self.utxos.remove(&self.outgoing.outpoint);
+    self.inputs.push(self.outgoing.outpoint);
+    self.outputs.push((self.recipient.clone(), amount));
 
-  //   tprintln!(
-  //     "selected outgoing outpoint {} with value {}",
-  //     self.outgoing.outpoint,
-  //     amount.to_sat()
-  //   );
+    tprintln!(
+      "selected outgoing outpoint {} with value {}",
+      self.outgoing.outpoint,
+      amount.to_sat()
+    );
 
-  //   Ok(self)
-  // }
+    Ok(self)
+  }
 
-  // fn align_outgoing(mut self) -> Self {
-  //   assert_eq!(self.outputs.len(), 1, "invariant: only one output");
+  fn align_outgoing(mut self) -> Self {
+    assert_eq!(self.outputs.len(), 1, "invariant: only one output");
 
-  //   assert_eq!(
-  //     self.outputs[0].0, self.recipient,
-  //     "invariant: first output is recipient"
-  //   );
+    assert_eq!(
+      self.outputs[0].0, self.recipient,
+      "invariant: first output is recipient"
+    );
 
-  //   let sat_offset = self.calculate_sat_offset();
-  //   if sat_offset == 0 {
-  //     tprintln!("outgoing is aligned");
-  //   } else {
-  //     tprintln!("aligned outgoing with {sat_offset} sat padding output");
-  //     self.outputs.insert(
-  //       0,
-  //       (
-  //         self
-  //           .unused_change_addresses
-  //           .pop()
-  //           .expect("not enough change addresses"),
-  //         Amount::from_sat(sat_offset),
-  //       ),
-  //     );
-  //     self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(sat_offset);
-  //   }
+    let sat_offset = self.calculate_sat_offset();
+    if sat_offset == 0 {
+      tprintln!("outgoing is aligned");
+    } else {
+      tprintln!("aligned outgoing with {sat_offset} sat padding output");
+      self.outputs.insert(
+        0,
+        (
+          self
+            .unused_change_addresses
+            .pop()
+            .expect("not enough change addresses"),
+          Amount::from_sat(sat_offset),
+        ),
+      );
+      self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(sat_offset);
+    }
 
-  //   self
-  // }
+    self
+  }
 
-  // fn pad_alignment_output(mut self) -> Result<Self> {
-  //   if self.outputs[0].0 == self.recipient {
-  //     tprintln!("no alignment output");
-  //   } else {
-  //     let dust_limit = self.recipient.script_pubkey().dust_value();
-  //     if self.outputs[0].1 >= dust_limit {
-  //       tprintln!("no padding needed");
-  //     } else {
-  //       let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1)?;
-  //       self.inputs.insert(0, utxo);
-  //       self.outputs[0].1 += size;
-  //       tprintln!(
-  //         "padded alignment output to {} with additional {size} sat input",
-  //         self.outputs[0].1
-  //       );
-  //     }
-  //   }
+  fn pad_alignment_output(mut self) -> Result<Self> {
+    if self.outputs[0].0 == self.recipient {
+      tprintln!("no alignment output");
+    } else {
+      let dust_limit = self.recipient.script_pubkey().dust_value();
+      if self.outputs[0].1 >= dust_limit {
+        tprintln!("no padding needed");
+      } else {
+        let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1)?;
+        self.inputs.insert(0, utxo);
+        self.outputs[0].1 += size;
+        tprintln!(
+          "padded alignment output to {} with additional {size} sat input",
+          self.outputs[0].1
+        );
+      }
+    }
 
-  //   Ok(self)
-  // }
+    Ok(self)
+  }
 
   fn add_value(mut self) -> Result<Self> {
     let estimated_fee = self.estimate_fee();
