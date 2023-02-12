@@ -74,7 +74,7 @@ use {
 
 pub use crate::{
   fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::TransactionBuilder,
+  subcommand::wallet::transaction_builder::TransactionBuilderPub,
 };
 
 #[cfg(test)]

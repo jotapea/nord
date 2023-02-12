@@ -381,7 +381,7 @@ impl Inscribe {
       &reveal_script,
     );
 
-    let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value_pub(
+    let unsigned_commit_tx = TransactionBuilderPub::build_transaction_with_value(
     // let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       // satpoint, //
       // inscriptions, //
