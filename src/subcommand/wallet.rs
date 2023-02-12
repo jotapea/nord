@@ -11,7 +11,7 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   fee_rate::FeeRate,
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
-  transaction_builder::TransactionBuilder,
+  transaction_builder::TransactionBuilderPub,
 };
 
 pub mod balance;
