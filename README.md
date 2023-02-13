@@ -1,3 +1,9 @@
+# pub
+
+Works like `ord`, but uses a wallet named 'pub' created specifically for this protocol. All commands must include the `--wallet pub` option.
+
+WIP...
+
 `ord`
 =====
 
