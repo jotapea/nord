@@ -1,8 +1,8 @@
 # pub
 
-Works like `ord`, but uses a wallet named 'pub' created specifically for this protocol. All commands must include the `--wallet pub` option.
+Works like `ord`, but uses a wallet named 'pub' created specifically for this protocol_id. All commands must include the `--wallet pub` option.
 
-WIP...
+WIP based on [#1501](https://github.com/casey/ord/issues/1501).
 
 `ord`
 =====
