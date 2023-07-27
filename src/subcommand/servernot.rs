@@ -364,38 +364,38 @@ impl Servernot {
     // }
   }
 
-  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
-    let mut headers = HeaderMap::new();
+  // fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
+  //   let mut headers = HeaderMap::new();
 
-    headers.insert(
-      header::CONTENT_TYPE,
-      inscription
-        .content_type()
-        .unwrap_or("application/octet-stream")
-        .parse()
-        .unwrap(),
-    );
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
+  //   headers.insert(
+  //     header::CONTENT_TYPE,
+  //     inscription
+  //       .content_type()
+  //       .unwrap_or("application/octet-stream")
+  //       .parse()
+  //       .unwrap(),
+  //   );
+  //   headers.insert(
+  //     header::CONTENT_SECURITY_POLICY,
+  //     HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+  //   );
+  //   headers.append(
+  //     header::CONTENT_SECURITY_POLICY,
+  //     HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
+  //   );
 
-    let body = inscription.into_body();
-    let cache_control = match body {
-      Some(_) => "max-age=31536000, immutable",
-      None => "max-age=600",
-    };
-    headers.insert(
-      header::CACHE_CONTROL,
-      HeaderValue::from_str(cache_control).unwrap(),
-    );
+  //   let body = inscription.into_body();
+  //   let cache_control = match body {
+  //     Some(_) => "max-age=31536000, immutable",
+  //     None => "max-age=600",
+  //   };
+  //   headers.insert(
+  //     header::CACHE_CONTROL,
+  //     HeaderValue::from_str(cache_control).unwrap(),
+  //   );
 
-    Some((headers, body?))
-  }
+  //   Some((headers, body?))
+  // }
 
   // async fn inscriptions_inner(
   //   page_config: Arc<PageConfig>,
