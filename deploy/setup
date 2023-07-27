@@ -78,11 +78,11 @@ source ~/.cargo/env
 
 rustup update stable
 
-cargo build --release
-if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
-fi
-cp target/release/ord /usr/local/bin/ord
+# cargo build --release
+# if [[ -f /usr/local/bin/ord ]]; then
+#   mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
+# fi
+# cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
@@ -120,12 +120,14 @@ setfacl -m ord:x $COOKIE_FILE_DIR
 setfacl -dm ord:r $COOKIE_FILE_DIR
 setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
 
-cp deploy/ord.service /etc/systemd/system/
-systemctl daemon-reload
-systemctl enable ord
-systemctl restart ord
+# cp deploy/ord.service /etc/systemd/system/
+# systemctl daemon-reload
+# systemctl enable ord
+# systemctl restart ord
 
-while ! curl --fail https://$DOMAIN/status; do
-  echo "Waiting for ord at https://$DOMAIN/status…"
-  sleep 1
-done
+# while ! curl --fail https://$DOMAIN/status; do
+#   echo "Waiting for ord at https://$DOMAIN/status…"
+#   sleep 1
+# done
+
+echo "setup DONE!"
