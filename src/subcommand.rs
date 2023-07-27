@@ -8,6 +8,7 @@ pub mod list;
 pub mod parse;
 mod preview;
 mod server;
+mod servernot;
 pub mod subsidy;
 pub mod supply;
 pub mod traits;
@@ -39,6 +40,8 @@ pub(crate) enum Subcommand {
   Subsidy(subsidy::Subsidy),
   #[clap(about = "Run the explorer server")]
   Server(server::Server),
+  #[clap(about = "Run the explorer servernot")]
+  Servernot(servernot::Servernot),
   #[clap(about = "Display Bitcoin supply information")]
   Supply,
   #[clap(about = "Display satoshi traits")]
@@ -63,6 +66,12 @@ impl Subcommand {
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
         server.run(options, index, handle)
+      }
+      Self::Servernot(servernot) => {
+        let index = Arc::new(Indexnot::open(&options)?);
+        let handle = axum_server::Handle::new();
+        LISTENERS.lock().unwrap().push(handle.clone());
+        servernot.run(options, index, handle)
       }
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
