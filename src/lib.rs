@@ -23,6 +23,7 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List, RuneEntry},
+    indexnot::Indexnot,
     inscription_id::InscriptionId,
     media::Media,
     options::Options,
@@ -119,6 +120,7 @@ mod epoch;
 mod fee_rate;
 mod height;
 mod index;
+mod indexnot;
 mod inscription;
 pub mod inscription_id;
 mod media;
